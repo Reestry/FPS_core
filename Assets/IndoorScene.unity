@@ -14917,6 +14917,10 @@ PrefabInstance:
       propertyPath: _reloadedClip
       value: 
       objectReference: {fileID: 7908887948102584331, guid: 4bbf0578b00918b4680455b77b67b26e, type: 3}
+    - target: {fileID: 1608434650065013047, guid: 9767e7d1ba1241c418f860d46a3696c1, type: 3}
+      propertyPath: _weaponObject
+      value: 
+      objectReference: {fileID: 11400000, guid: 5ea9e4f5ee90dad41bd142b1527ee178, type: 2}
     - target: {fileID: 2719580759465887669, guid: 9767e7d1ba1241c418f860d46a3696c1, type: 3}
       propertyPath: m_ExcludeLayers.m_Bits
       value: 0

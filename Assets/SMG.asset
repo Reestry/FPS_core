@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WeaponObject
   _ammoCount: 30
   _reloadTime: 1.5
-  _reloadedClip: {fileID: 0}
+  _reloadedClip: {fileID: 7908887948102584331, guid: 4bbf0578b00918b4680455b77b67b26e, type: 3}
   _shootRate: 0.2
   _recoilForce: 1
   _maxSpread: 5
