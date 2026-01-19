@@ -7,10 +7,13 @@ using Random = UnityEngine.Random;
 
 public class PlayerShoot : MonoBehaviour, IInputable
 {
+    [HideInInspector] public bool IsAiming;
+
+    [SerializeField] private WeaponObject _weaponObject;
+
     [SerializeField] private GameObject _weaponObj;
     [SerializeField] private Transform _aimPos;
-
-    public bool IsAiming;
+    [SerializeField] private GameObject _cameraHolder;
 
     private InputHandler _inputHandler;
     private WeaponAnimator _weapon;
@@ -25,34 +28,48 @@ public class PlayerShoot : MonoBehaviour, IInputable
 
     private int _currentAmmo;
 
-    // weapon stats
-    [Header(" Weapon Stats (delete later)")] [SerializeField]
-    private float _shootRate = 0.2f;
-
-    [Range(0.5f, 5)] [SerializeField] private float _recoilForce = 1f;
-    [SerializeField] private int _ammoCount = 30;
-    
-    
-    [Range(0f, 10f)] [SerializeField] private float _reloadTime = 1.5f;
-    [SerializeField] private GameObject _reloadedClip;
-    
-    [Header("\n Recoil")] [SerializeField] private float _recoilDuration = 0.12f;
-    [SerializeField] private float _recoilResetSpeed = 0.1f;
-    [SerializeField] private float _firstableResetSpeed = 0.14f;
-    [SerializeField] private GameObject _cameraHolder;
     private Tween _cameraTween;
     private Vector3 _startRot;
 
     private float _currentSpread;
 
-    [Header("\n Spread")] [SerializeField] private float _maxSpread = 5f;
-    [SerializeField] private float _spreadPerShot = 0.5f;
-    [SerializeField] private float _spreadRecovery = 2f;
+    // weapon stats
+
+    private float _shootRate;
+
+    private float _recoilForce;
+    private int _ammoCount;
+
+    private float _reloadTime;
+    private GameObject _reloadedClip;
+
+    // TODO: To recoil script
+    private float _recoilDuration;
+    private float _recoilResetSpeed;
+    private float _firstResetSpeed;
+
+    // TODO: To spread script
+    private float _maxSpread;
+    private float _spreadPerShot;
+    private float _spreadRecovery;
 
     //Set Weapon Scriptable Object
-    private void SetWeaponStats()
+    private void SetWeaponStats(WeaponObject weapon)
     {
-        _currentAmmo = _ammoCount;
+        // Can be deleted
+        _currentAmmo = weapon.AmmoCount;
+
+        _ammoCount = weapon.AmmoCount;
+        _reloadTime = weapon.ReloadTime;
+        _reloadedClip = weapon.ReloadedClip;
+        _shootRate = weapon.ShootRate;
+        _recoilForce = weapon.RecoilForce;
+        _maxSpread = weapon.MaxSpread;
+        _spreadPerShot = weapon.SpreadPerShot;
+        _spreadRecovery = weapon.SpreadRecovery;
+        _recoilDuration = weapon.RecoilDuration;
+        _recoilResetSpeed = weapon.RecoilResetSpeed;
+        _firstResetSpeed = weapon.FirstResetSpeed;
     }
 
     private void OnEnable()
@@ -60,6 +77,8 @@ public class PlayerShoot : MonoBehaviour, IInputable
         _inputHandler = GetComponent<InputHandler>();
         _inputHandler.SetInput(this);
         _weapon = GetComponentInChildren<WeaponAnimator>();
+
+        SetWeaponStats(_weaponObject);
 
         _inputHandler.OnReloadPressed += Reload;
 
@@ -70,19 +89,18 @@ public class PlayerShoot : MonoBehaviour, IInputable
         _currentRot = _weaponObj.transform.localRotation;
 
         _startRot = _cameraHolder.transform.localRotation.eulerAngles;
-
-        SetWeaponStats();
     }
 
     private async void Reload()
     {
         if (_currentAmmo == _ammoCount)
             return;
-        
+
         _weapon.Reload();
-        
+
         await Task.Delay((int) (_reloadTime * 1000));
-        Instantiate(_reloadedClip, new Vector3(transform.position.x, transform.position.y, transform.position.z), quaternion.Euler(50,30,0));
+        Instantiate(_reloadedClip, new Vector3(transform.position.x, transform.position.y, transform.position.z),
+            quaternion.Euler(50, 30, 0));
         _currentAmmo = _ammoCount;
     }
 
@@ -117,12 +135,10 @@ public class PlayerShoot : MonoBehaviour, IInputable
             var rbObj = hit.collider.attachedRigidbody;
             if (rbObj != null)
                 hit.collider.attachedRigidbody.AddForce(shootDir * 50, ForceMode.Impulse);
-            
+
             Debug.Log(hit.collider.name);
 
-
-
-        //Destroy(hit.collider.gameObject);
+            //Destroy(hit.collider.gameObject);
         }
     }
 
@@ -138,7 +154,7 @@ public class PlayerShoot : MonoBehaviour, IInputable
             .Append(_cameraHolder.transform.DOLocalRotate(
                 new Vector3(currentRot.x + recoilX * _recoilForce, currentRot.y + recoilY * _recoilForce, currentRot.z),
                 recoilDuration).SetEase(Ease.OutQuad))
-            .Append(_cameraHolder.transform.DOLocalRotate(currentRot, _firstableResetSpeed)
+            .Append(_cameraHolder.transform.DOLocalRotate(currentRot, _firstResetSpeed)
                 .SetEase(Ease.InQuad))
             .Append(_cameraHolder.transform.DOLocalRotate(_startRot, resetSpeed).SetEase(Ease.OutQuad))
             .SetAutoKill(false);
@@ -148,11 +164,6 @@ public class PlayerShoot : MonoBehaviour, IInputable
     {
         if (_inputHandler.ReturnHandler().Player.Attack.IsPressed() && CanShoot())
             Shoot();
-
-        if (_inputHandler.ReturnHandler().Player.Attack.WasReleasedThisFrame())
-        {
-            _weapon.ReleasePosition();
-        }
 
         if (_inputHandler.ReturnHandler().Player.Aim.WasPressedThisFrame())
         {
