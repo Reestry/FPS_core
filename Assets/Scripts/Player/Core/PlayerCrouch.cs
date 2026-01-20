@@ -43,7 +43,7 @@ public class PlayerCrouch : PlayerInput, IInputable
 
             _playerMove.SetState(MoveState.Crouch);
             
-            //_weaponAnimator.CrouchAnimation();
+            _weaponAnimator.CrouchAnimation();
         }
 
         if (_inputHandler.ReturnHandler().Player.Crouch.WasReleasedThisFrame()) 
@@ -53,7 +53,7 @@ public class PlayerCrouch : PlayerInput, IInputable
             
             _playerMove.SetState(MoveState.Walk); 
             
-            //_weaponAnimator.ResetCrouchAnimation();
+            _weaponAnimator.ResetCrouchAnimation();
         }
     }
 }

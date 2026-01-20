@@ -20,6 +20,13 @@ public class WeaponObject : ScriptableObject
     [Header("\n Recoil")] [SerializeField] private float _recoilDuration = 0.12f;
     [SerializeField] private float _recoilResetSpeed = 0.1f;
     [SerializeField] private float _firstResetSpeed = 0.14f;
+
+
+    [Header("\n Animation")] [SerializeField]
+    private float _shootAmplitude = 0.1f;
+
+    [SerializeField] private float _aimFovMultiplier = 1.5f;
+    
     public int AmmoCount => _ammoCount;
     public float ReloadTime => _reloadTime;
     public GameObject ReloadedClip => _reloadedClip;
@@ -34,4 +41,7 @@ public class WeaponObject : ScriptableObject
     public float RecoilDuration => _recoilDuration;
     public float RecoilResetSpeed => _recoilResetSpeed;
     public float FirstResetSpeed => _firstResetSpeed;
+
+    public float ShootAmplitude => _shootAmplitude;
+    public float AimFovMultiplier => _aimFovMultiplier;
 }

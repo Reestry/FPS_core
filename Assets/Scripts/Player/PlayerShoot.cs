@@ -16,7 +16,7 @@ public class PlayerShoot : MonoBehaviour, IInputable
     [SerializeField] private GameObject _cameraHolder;
 
     private InputHandler _inputHandler;
-    private WeaponAnimator _weapon;
+    private WeaponAnimator _weaponAnimator;
 
     private Vector3 _currentPos;
     private Quaternion _currentRot;
@@ -53,6 +53,9 @@ public class PlayerShoot : MonoBehaviour, IInputable
     private float _spreadPerShot;
     private float _spreadRecovery;
 
+    //
+    private float _shootAmplitude;
+
     //Set Weapon Scriptable Object
     private void SetWeaponStats(WeaponObject weapon)
     {
@@ -70,20 +73,21 @@ public class PlayerShoot : MonoBehaviour, IInputable
         _recoilDuration = weapon.RecoilDuration;
         _recoilResetSpeed = weapon.RecoilResetSpeed;
         _firstResetSpeed = weapon.FirstResetSpeed;
+        _shootAmplitude = weapon.ShootAmplitude;
     }
 
     private void OnEnable()
     {
         _inputHandler = GetComponent<InputHandler>();
         _inputHandler.SetInput(this);
-        _weapon = GetComponentInChildren<WeaponAnimator>();
+        _weaponAnimator = GetComponentInChildren<WeaponAnimator>();
 
         SetWeaponStats(_weaponObject);
+        _defaultFov = Camera.main.fieldOfView;
+        _aimFov = _defaultFov / _weaponObject.AimFovMultiplier;
+        _weaponAnimator.SetValues(_shootAmplitude, _defaultFov, _aimFov);
 
         _inputHandler.OnReloadPressed += Reload;
-
-        _defaultFov = Camera.main.fieldOfView;
-        _aimFov = _defaultFov / 1.5f;
 
         _currentPos = _weaponObj.transform.localPosition;
         _currentRot = _weaponObj.transform.localRotation;
@@ -96,7 +100,7 @@ public class PlayerShoot : MonoBehaviour, IInputable
         if (_currentAmmo == _ammoCount)
             return;
 
-        _weapon.Reload();
+        _weaponAnimator.Reload();
 
         await Task.Delay((int) (_reloadTime * 1000));
         Instantiate(_reloadedClip, new Vector3(transform.position.x, transform.position.y, transform.position.z),
@@ -106,11 +110,11 @@ public class PlayerShoot : MonoBehaviour, IInputable
 
     private void Shoot()
     {
-        if (_weapon == null)
+        if (_weaponAnimator == null)
             return;
 
         _currentAmmo--;
-        _weapon.Shoot(_shootRate, IsAiming);
+        _weaponAnimator.Shoot(_shootRate, IsAiming);
 
         CameraRecoil(_recoilDuration, _recoilResetSpeed);
 
@@ -168,13 +172,13 @@ public class PlayerShoot : MonoBehaviour, IInputable
         if (_inputHandler.ReturnHandler().Player.Aim.WasPressedThisFrame())
         {
             IsAiming = true;
-            _weapon.Aim(_aimFov, _aimPos);
+            _weaponAnimator.Aim(_aimPos);
         }
 
         if (_inputHandler.ReturnHandler().Player.Aim.WasReleasedThisFrame())
         {
             IsAiming = false;
-            _weapon.ResetAim(_defaultFov, _currentPos, _currentRot);
+            _weaponAnimator.ResetAim(_currentPos, _currentRot);
         }
 
         _currentSpread = Mathf.MoveTowards(_currentSpread, 0f, _spreadRecovery * Time.deltaTime);
