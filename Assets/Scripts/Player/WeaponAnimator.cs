@@ -28,8 +28,8 @@ public class WeaponAnimator : MonoBehaviour
     {
         _standPos = transform.localPosition;
         _standRot = transform.localRotation;
-        _crouchWeaponPos = _standPos + new Vector3(-0.4f, -0.1f, 0f);
-        _crouchWeaponRot = _standRot * Quaternion.Euler(0, 0, 15f);
+        _crouchWeaponPos = _standPos + new Vector3(-0.05f, 0.05f, -0.15f);
+        _crouchWeaponRot = _standRot * Quaternion.Euler(0, 0, -5f);
     }
 
     public void SetValues(float shootAmplitude, float defaultFov, float aimFov)
@@ -67,10 +67,13 @@ public class WeaponAnimator : MonoBehaviour
             .SetAutoKill(false);
     }
 
+    private bool _isAim;
+
     // TODO: Aim & ResetAim need to unite in 1 void
     public void Aim(Transform _aimPos)
     {
         _crouchTween?.Kill();
+        _isAim = true;
 
         DOTween.To(() => Camera.main.fieldOfView, x => Camera.main.fieldOfView = x, _aimFov, 0.1f)
             .SetEase(Ease.OutSine).SetAutoKill(true);
@@ -86,7 +89,8 @@ public class WeaponAnimator : MonoBehaviour
     public void ResetAim(Vector3 _defaultPos, Quaternion _defaultRot)
     {
         _crouchTween?.Kill();
-
+        _isAim = false;
+        
         if (_isCrouching)
         {
             _defaultPos = _crouchWeaponPos;
@@ -103,25 +107,25 @@ public class WeaponAnimator : MonoBehaviour
             .SetAutoKill(true);
     }
 
-    public void CrouchAnimation()
-    {
-        _isCrouching = true;
-        _crouchTween = DOTween.Sequence()
-            .Join(transform.DOLocalMove(_crouchWeaponPos, 0.5f)
-                .SetEase(Ease.OutElastic, 1, 0.3f))
-            .Join(transform.DOLocalRotate(_crouchWeaponRot.eulerAngles, 0.5f).SetEase(Ease.OutElastic, 1.5f, 0.2f))
-            .SetAutoKill(true);
-    }
 
-    public void ResetCrouchAnimation()
+
+    public void SetCrouchAnimation(bool isCrouching)
     {
-        _isCrouching = false;
+        _isCrouching = isCrouching;
+        
+        if (_isAim)
+            return;
+
+        var targetPos = _isCrouching ? _crouchWeaponPos : _standPos;
+        var targetRot = isCrouching ? _crouchWeaponRot : _standRot;
+        
         _crouchTween = DOTween.Sequence()
-            .Append(transform.DOLocalMove(_standPos, 0.5f)
+            .Append(transform.DOLocalMove(targetPos, 0.5f)
                 .SetEase(Ease.OutElastic, 1, 0.3f))
-            .Join(transform.DOLocalRotate(_standRot.eulerAngles, 0.5f)
+            .Join(transform.DOLocalRotate(targetRot.eulerAngles, 0.5f)
                 .SetEase(Ease.OutElastic, 1.5f, 0.2f))
             .SetAutoKill(true);
+
     }
 
     public void Reload()
