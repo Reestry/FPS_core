@@ -107,8 +107,6 @@ public class WeaponAnimator : MonoBehaviour
             .SetAutoKill(true);
     }
 
-
-
     public void SetCrouchAnimation(bool isCrouching)
     {
         _isCrouching = isCrouching;
@@ -130,11 +128,17 @@ public class WeaponAnimator : MonoBehaviour
 
     public void Reload()
     {
+        if (_isAim)
+            return;
+        
         _animator.SetTrigger(IsReload);
     }
 
     private void Interact()
     {
+        if (_isAim)
+            return;
+        
         _animator.SetTrigger(IsInteract);
     }
 }

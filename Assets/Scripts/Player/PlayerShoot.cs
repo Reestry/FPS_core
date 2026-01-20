@@ -7,7 +7,9 @@ using Random = UnityEngine.Random;
 
 public class PlayerShoot : MonoBehaviour, IInputable
 {
-    [HideInInspector] public bool IsAiming;
+    
+    // TODO: make it with enums
+    private bool IsAiming;
 
     [SerializeField] private WeaponObject _weaponObject;
 
@@ -56,6 +58,9 @@ public class PlayerShoot : MonoBehaviour, IInputable
     //
     private float _shootAmplitude;
 
+
+    private Transform _startPos;
+
     //Set Weapon Scriptable Object
     private void SetWeaponStats(WeaponObject weapon)
     {
@@ -92,14 +97,17 @@ public class PlayerShoot : MonoBehaviour, IInputable
         _currentPos = _weaponObj.transform.localPosition;
         _currentRot = _weaponObj.transform.localRotation;
 
+        _startPos = _weaponObj.transform;
+
         _startRot = _cameraHolder.transform.localRotation.eulerAngles;
     }
 
     private async void Reload()
     {
-        if (_currentAmmo == _ammoCount)
+        if (_currentAmmo == _ammoCount || IsAiming)
             return;
-
+        
+        
         _weaponAnimator.Reload();
 
         await Task.Delay((int) (_reloadTime * 1000));
@@ -178,6 +186,7 @@ public class PlayerShoot : MonoBehaviour, IInputable
         if (_inputHandler.ReturnHandler().Player.Aim.WasReleasedThisFrame())
         {
             IsAiming = false;
+
             _weaponAnimator.ResetAim(_currentPos, _currentRot);
         }
 
